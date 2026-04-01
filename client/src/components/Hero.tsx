@@ -1,6 +1,8 @@
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
 const Hero = () => {
+    const navigate = useNavigate();
   return (
     <section className="grid md:grid-cols-2 gap-12 px-10 py-20 items-center">
       
@@ -37,7 +39,9 @@ const Hero = () => {
             Access Insights
           </button>
 
-          <button className="border border-white/30 px-6 py-3 rounded-lg hover:bg-white hover:text-black transition">
+          <button 
+                onClick={() => navigate("/login")}
+                className="border border-white/30 px-6 py-3 rounded-lg hover:bg-white hover:text-black transition">
             Join platform
           </button>
         </div>
