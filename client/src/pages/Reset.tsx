@@ -1,54 +1,68 @@
+import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 
-const Verify = () => {
-  const [otp, setOtp] = useState("");
+const Reset = () => {
+  const { token } = useParams();
+  const navigate = useNavigate();
+
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [resending, setResending] = useState(false);
+  const [success, setSuccess] = useState(false);
   const [notification, setNotification] = useState(null);
 
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  const email = location.state?.email;
-
-  const verifyOtp = async () => {
-    if (!otp) {
+  const resetPassword = async () => {
+    // ❌ VALIDATION (NO ALERTS)
+    if (!password || !confirmPassword) {
       return setNotification({
         type: "error",
-        message: "Please enter OTP"
+        message: "Please fill all fields"
+      });
+    }
+
+    if (password !== confirmPassword) {
+      return setNotification({
+        type: "error",
+        message: "Passwords do not match"
       });
     }
 
     setLoading(true);
 
     try {
-      const res = await fetch("http://localhost:5000/api/auth/verify", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ email, otp })
-      });
+      const res = await fetch(
+        `http://localhost:5000/api/auth/reset/${token}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ password })
+        }
+      );
 
       const data = await res.json();
       setLoading(false);
 
-      if (data.msg === "Verified") {
+      if (
+        data.msg === "Password updated" ||
+        data.msg === "Password updated successfully"
+      ) {
+        setSuccess(true);
+
         setNotification({
           type: "success",
-          message: "Verification successful 🎉"
+          message: "Password updated successfully 🎉"
         });
 
         setTimeout(() => {
-          navigate("/dashboard");
-        }, 1500);
-
+          navigate("/login");
+        }, 2000);
       } else {
         setNotification({
           type: "error",
-          message: "Invalid OTP"
+          message: data.msg
         });
       }
 
@@ -61,34 +75,7 @@ const Verify = () => {
     }
   };
 
-  const resendOtp = async () => {
-    setResending(true);
-
-    try {
-      await fetch("http://localhost:5000/api/auth/resend", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ email })
-      });
-
-      setNotification({
-        type: "success",
-        message: "OTP resent successfully ✉️"
-      });
-
-    } catch (err) {
-      setNotification({
-        type: "error",
-        message: "Failed to resend OTP"
-      });
-    }
-
-    setTimeout(() => setResending(false), 1500);
-  };
-
-  // 🔁 AUTO HIDE
+  // 🔁 AUTO HIDE NOTIFICATION
   useEffect(() => {
     if (notification) {
       const timer = setTimeout(() => {
@@ -133,34 +120,40 @@ const Verify = () => {
         {/* 🔐 Icon */}
         <div className="flex justify-center mb-5">
           <div className="w-14 h-14 rounded-full bg-purple-600/30 flex items-center justify-center text-white text-xl border border-purple-400/30">
-            🔐
+            🔒
           </div>
         </div>
 
         {/* Title */}
         <h2 className="text-center text-xl font-semibold mb-2 text-white">
-          Verify Your Email
+          Reset Password
         </h2>
 
         <p className="text-center text-gray-400 text-sm mb-6">
-          Enter the 6-digit code sent to your email
+          Enter your new password
         </p>
 
-        {/* OTP INPUT */}
-        <motion.input
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          maxLength={6}
-          placeholder="------"
-          className="w-full mb-6 bg-transparent border-b border-purple-400/40 py-3 text-white text-center text-2xl tracking-[0.6em] placeholder-gray-500 focus:outline-none focus:border-purple-500 transition"
-          onChange={(e) => setOtp(e.target.value)}
+        {/* Password */}
+        <input
+          type="password"
+          placeholder="New Password"
+          className="w-full mb-4 bg-transparent border-b border-gray-300/40 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-purple-400 transition"
+          onChange={(e) => setPassword(e.target.value)}
         />
 
-        {/* VERIFY BUTTON */}
+        {/* Confirm Password */}
+        <input
+          type="password"
+          placeholder="Confirm Password"
+          className="w-full mb-6 bg-transparent border-b border-gray-300/40 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-pink-400 transition"
+          onChange={(e) => setConfirmPassword(e.target.value)}
+        />
+
+        {/* Button */}
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          onClick={verifyOtp}
+          onClick={resetPassword}
           disabled={loading}
           className="w-full py-2 rounded-lg 
           bg-gradient-to-r from-purple-600 to-pink-500 
@@ -168,19 +161,19 @@ const Verify = () => {
           border border-purple-400/40 transition 
           disabled:opacity-50"
         >
-          {loading ? "Verifying..." : "Verify & Continue"}
+          {loading ? "Updating..." : success ? "Updated ✓" : "Update Password"}
         </motion.button>
 
-        {/* RESEND */}
-        <p className="text-center text-sm text-gray-400 mt-5">
-          Didn't receive code?{" "}
-          <span
-            onClick={resendOtp}
-            className="text-purple-400 cursor-pointer hover:underline"
+        {/* Success text */}
+        {success && (
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center text-green-400 mt-4 text-sm"
           >
-            {resending ? "Sending..." : "Resend"}
-          </span>
-        </p>
+            Redirecting to login...
+          </motion.p>
+        )}
 
       </motion.div>
 
@@ -211,4 +204,4 @@ const Verify = () => {
   );
 };
 
-export default Verify;
+export default Reset;

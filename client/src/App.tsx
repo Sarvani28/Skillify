@@ -4,7 +4,8 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Verify from "./pages/Verify";
 import Dashboard from "./pages/Dashboard";
-
+import Forgot from "./pages/Forgot";
+import Reset from "./pages/Reset";
 function App() {
   return (
     <BrowserRouter>
@@ -14,6 +15,8 @@ function App() {
         <Route path="/signup" element={<Signup />} />
         <Route path="/verify" element={<Verify />} />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/forgot" element={<Forgot />} />
+        <Route path="/reset/:token" element={<Reset />} />
       </Routes>
     </BrowserRouter>
   );

@@ -1,14 +1,24 @@
-import { useState } from "react";
+import { useState,useEffect, use } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion,AnimatePresence } from "framer-motion";
 
 const Signup = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [notification, setNotification] = useState(null);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSignup = async () => {
+    if(!name || !email || !password) {
+        return setNotification({
+            type: "error", 
+            message: "Please fill all fields"
+        });
+    }
+    setLoading(true);
+    try{
     const res= await fetch("http://localhost:5000/api/auth/signup", {
       method: "POST",
       headers: {
@@ -17,14 +27,39 @@ const Signup = () => {
       body: JSON.stringify({ name, email, password })
     });
     const data = await res.json();
+    setLoading(false);
 
     if (data.msg === "OTP sent") {
-      navigate("/verify", { state: { email } });
+      setNotification({
+          type: "success",
+          message: "OTP sent to your email ✉️"
+        });
+
+        setTimeout(() => {
+          navigate("/verify", { state: { email } });
+        }, 1500);
     } else {
-      alert(data.msg);
+      setNotification({
+          type: "error",
+          message: data.msg
+        });
     }
-  };
-  
+    }catch(err){
+        setLoading(false);
+        setNotification({
+            type: "error",
+            message: "Something went wrong. Please try again."
+        });
+    }
+    };
+    useEffect(() => {
+        if(notification) {
+            const timer = setTimeout(() => {
+                setNotification(null);
+            }, 2000);
+            return () => clearTimeout(timer);
+        }
+    }, [notification]);
   return (
     <div className="relative min-h-screen flex items-center justify-center overflow-hidden">
 
@@ -127,6 +162,27 @@ const Signup = () => {
         </motion.p>
 
       </motion.div>
+      <AnimatePresence>
+        {notification && (
+          <motion.div
+            initial={{ opacity: 0, y: -40, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0 }}
+            className={`fixed top-6 left-1/2 -translate-x-1/2 px-6 py-3 rounded-xl 
+            backdrop-blur-xl border shadow-lg z-50 flex items-center gap-2
+            ${
+              notification.type === "success"
+                ? "bg-green-500/20 border-green-400/40 text-green-300"
+                : "bg-red-500/20 border-red-400/40 text-red-300"
+            }`}
+          >
+            <span>
+              {notification.type === "success" ? "✅" : "⚠️"}
+            </span>
+            {notification.message}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

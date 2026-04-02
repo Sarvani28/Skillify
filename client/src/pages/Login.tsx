@@ -1,30 +1,67 @@
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion,AnimatePresence } from "framer-motion";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [notification, setNotification] = useState(null);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleLogin = async () => {
-    const res = await fetch("http://localhost:5000/api/auth/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ email, password })
+    if (!email || !password) {
+      return setNotification({
+        type: "error",
+        message: "Please enter email & password"
+      });
+    }
+
+    setLoading(true);
+    try{
+        const res = await fetch("http://localhost:5000/api/auth/login", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ email, password })
     });
 
     const data = await res.json();
-
+    setLoading(false);
     if (data.token) {
       localStorage.setItem("token", data.token);
-      navigate("/");
-    } else {
-      alert(data.msg);
+      setNotification({
+          type: "success",
+          message: "Login successful 🚀"
+        });
+
+        setTimeout(() => {
+          navigate("/dashboard");
+        }, 1500);
+    }else{
+        setNotification({
+            type:"error",
+            message: data.msg
+        });
+    }
+    }catch(err){
+      setLoading(false);
+      setNotification({
+        type: "error",
+        message: "Server error. Try again!"
+      });
     }
   };
+    useEffect(() => {
+    if (notification) {
+      const timer = setTimeout(() => {
+        setNotification(null);
+      }, 2000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [notification]);
     return (
   <div className="relative min-h-screen flex items-center justify-center overflow-hidden">
 
@@ -97,7 +134,9 @@ const Login = () => {
           Remember
         </label>
 
-        <span className="hover:text-white cursor-pointer">
+        <span 
+            onClick={()=>navigate("/forgot")}
+            className="hover:text-white cursor-pointer">  
           Forgot Password?
         </span>
       </div>
@@ -131,6 +170,27 @@ const Login = () => {
       </motion.p>
 
     </motion.div>
+    <AnimatePresence>
+        {notification && (
+          <motion.div
+            initial={{ opacity: 0, y: -40, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0 }}
+            className={`fixed top-6 left-1/2 -translate-x-1/2 px-6 py-3 rounded-xl 
+            backdrop-blur-xl border shadow-lg z-50 flex items-center gap-2
+            ${
+              notification.type === "success"
+                ? "bg-green-500/20 border-green-400/40 text-green-300"
+                : "bg-red-500/20 border-red-400/40 text-red-300"
+            }`}
+          >
+            <span>
+              {notification.type === "success" ? "✅" : "⚠️"}
+            </span>
+            {notification.message}
+          </motion.div>
+        )}
+      </AnimatePresence>
   </div>
 );
 };

@@ -1,54 +1,53 @@
 import { useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 
-const Verify = () => {
-  const [otp, setOtp] = useState("");
+const Forgot = () => {
+  const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
-  const [resending, setResending] = useState(false);
+  const [sent, setSent] = useState(false);
   const [notification, setNotification] = useState(null);
 
   const navigate = useNavigate();
-  const location = useLocation();
 
-  const email = location.state?.email;
-
-  const verifyOtp = async () => {
-    if (!otp) {
+  const sendLink = async () => {
+    if (!email) {
       return setNotification({
         type: "error",
-        message: "Please enter OTP"
+        message: "Please enter your email"
       });
     }
 
     setLoading(true);
 
     try {
-      const res = await fetch("http://localhost:5000/api/auth/verify", {
+      const res = await fetch("http://localhost:5000/api/auth/forgot", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({ email, otp })
+        body: JSON.stringify({ email })
       });
 
       const data = await res.json();
       setLoading(false);
 
-      if (data.msg === "Verified") {
+      if (data.msg) {
+        setSent(true);
+
         setNotification({
           type: "success",
-          message: "Verification successful 🎉"
+          message: "Reset link sent to your email ✉️"
         });
 
         setTimeout(() => {
-          navigate("/dashboard");
-        }, 1500);
+          navigate("/login");
+        }, 2000);
 
       } else {
         setNotification({
           type: "error",
-          message: "Invalid OTP"
+          message: "Something went wrong"
         });
       }
 
@@ -59,33 +58,6 @@ const Verify = () => {
         message: "Server error. Try again!"
       });
     }
-  };
-
-  const resendOtp = async () => {
-    setResending(true);
-
-    try {
-      await fetch("http://localhost:5000/api/auth/resend", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ email })
-      });
-
-      setNotification({
-        type: "success",
-        message: "OTP resent successfully ✉️"
-      });
-
-    } catch (err) {
-      setNotification({
-        type: "error",
-        message: "Failed to resend OTP"
-      });
-    }
-
-    setTimeout(() => setResending(false), 1500);
   };
 
   // 🔁 AUTO HIDE
@@ -133,34 +105,32 @@ const Verify = () => {
         {/* 🔐 Icon */}
         <div className="flex justify-center mb-5">
           <div className="w-14 h-14 rounded-full bg-purple-600/30 flex items-center justify-center text-white text-xl border border-purple-400/30">
-            🔐
+            🔑
           </div>
         </div>
 
         {/* Title */}
         <h2 className="text-center text-xl font-semibold mb-2 text-white">
-          Verify Your Email
+          Forgot Password
         </h2>
 
         <p className="text-center text-gray-400 text-sm mb-6">
-          Enter the 6-digit code sent to your email
+          Enter your email to receive reset link
         </p>
 
-        {/* OTP INPUT */}
-        <motion.input
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          maxLength={6}
-          placeholder="------"
-          className="w-full mb-6 bg-transparent border-b border-purple-400/40 py-3 text-white text-center text-2xl tracking-[0.6em] placeholder-gray-500 focus:outline-none focus:border-purple-500 transition"
-          onChange={(e) => setOtp(e.target.value)}
+        {/* Input */}
+        <input
+          type="email"
+          placeholder="Enter your email"
+          className="w-full mb-6 bg-transparent border-b border-gray-300/40 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-purple-400 transition"
+          onChange={(e) => setEmail(e.target.value)}
         />
 
-        {/* VERIFY BUTTON */}
+        {/* Button */}
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          onClick={verifyOtp}
+          onClick={sendLink}
           disabled={loading}
           className="w-full py-2 rounded-lg 
           bg-gradient-to-r from-purple-600 to-pink-500 
@@ -168,19 +138,19 @@ const Verify = () => {
           border border-purple-400/40 transition 
           disabled:opacity-50"
         >
-          {loading ? "Verifying..." : "Verify & Continue"}
+          {loading ? "Sending..." : sent ? "Link Sent ✓" : "Send Reset Link"}
         </motion.button>
 
-        {/* RESEND */}
-        <p className="text-center text-sm text-gray-400 mt-5">
-          Didn't receive code?{" "}
-          <span
-            onClick={resendOtp}
-            className="text-purple-400 cursor-pointer hover:underline"
+        {/* Success text */}
+        {sent && (
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center text-green-400 mt-4 text-sm"
           >
-            {resending ? "Sending..." : "Resend"}
-          </span>
-        </p>
+            Redirecting to login...
+          </motion.p>
+        )}
 
       </motion.div>
 
@@ -211,4 +181,4 @@ const Verify = () => {
   );
 };
 
-export default Verify;
+export default Forgot;
