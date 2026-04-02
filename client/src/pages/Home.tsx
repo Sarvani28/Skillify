@@ -1,7 +1,7 @@
-import Navbar from "../components/Navbar";
-import Hero from "../components/Hero";
-import Stats from "../components/Stats";
-import Companies from "../components/Companies";
+import Navbar from "../components/Home/Navbar";
+import Hero from "../components/Home/Hero";
+import Stats from "../components/Home/Stats";
+import Companies from "../components/Home/Companies";
 
 const Home = () => {
   return (

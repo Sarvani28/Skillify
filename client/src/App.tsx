@@ -1,11 +1,13 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
-import Login from "./pages/Login";
-import Signup from "./pages/Signup";
-import Verify from "./pages/Verify";
+import Login from "./pages/Auth/Login";
+import Signup from "./pages/Auth/Signup";
+import Verify from "./pages/Auth/Verify";
 import Dashboard from "./pages/Dashboard";
-import Forgot from "./pages/Forgot";
-import Reset from "./pages/Reset";
+import Forgot from "./pages/Auth/Forgot";
+import Reset from "./pages/Auth/Reset";
+import SkillSyncDashboard from "./pages/SkillSyncDashboard";
+import StartifyDashboard from "./pages/StartifyDashboard";
 function App() {
   return (
     <BrowserRouter>
@@ -17,6 +19,8 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/forgot" element={<Forgot />} />
         <Route path="/reset/:token" element={<Reset />} />
+        <Route path="/skillsync-dashboard" element={<SkillSyncDashboard />} />
+        <Route path="/startify-dashboard" element={<StartifyDashboard />} />
       </Routes>
     </BrowserRouter>
   );
