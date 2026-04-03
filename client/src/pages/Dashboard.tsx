@@ -1,9 +1,16 @@
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { FaChartLine, FaRocket } from "react-icons/fa";
+import { useEffect } from "react";
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      navigate("/login");
+    }
+  }, []);
 
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-black text-white">

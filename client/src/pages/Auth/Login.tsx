@@ -37,7 +37,7 @@ const Login = () => {
         });
 
         setTimeout(() => {
-          navigate("/dashboard");
+          navigate("/dashboard",{ replace: true });
         }, 1500);
     }else{
         setNotification({
